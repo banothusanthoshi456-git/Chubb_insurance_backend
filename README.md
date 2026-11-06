@@ -16,12 +16,25 @@ Backend for the Chubb APAC claims assessment: claimants report and track claims 
 JDK 17+, Maven 3.9+.
 
 ## Run
+Start the local MySQL database with Docker Compose (Docker required):
 ```bash
-mvn spring-boot:run                                   # MySQL claims_management database
+docker compose up -d
+```
+Set `DB_USER`, `DB_PASSWORD`, and `MYSQL_ROOT_PASSWORD` before starting Compose; the app uses the first two and Compose uses the third to initialize MySQL. For PowerShell, for example:
+```powershell
+$env:DB_USER = "claims_app"
+$env:DB_PASSWORD = "<choose a local development password>"
+$env:MYSQL_ROOT_PASSWORD = "<choose a local development root password>"
+docker compose up -d
+mvn spring-boot:run
+```
+The application uses `DB_URL` if set; otherwise it connects to the local Compose database. Database credentials have no source-controlled default and must be provided through the environment. The Compose database persists in a named volume.
+
+```bash
 mvn test                                               # isolated in-memory H2 database
 ```
 The API is available at `http://localhost:8080`; health is at `http://localhost:8080/actuator/health`. Tests use an isolated H2 database and do not require MySQL.
-The application connects to `jdbc:mysql://localhost:3306/claims_management` by default. Override with `DB_URL`, `DB_USER`, and `DB_PASSWORD` for a different local MySQL setup. Flyway applies the claimant email normalization migration on startup; for an existing database it keeps the lowest-id claimant for each trimmed, case-insensitive email and reassigns related claims before creating the unique index.
+Flyway applies the claimant email normalization migration on startup; for an existing database it keeps the lowest-id claimant for each trimmed, case-insensitive email and reassigns related claims before creating the unique index.
 
 ## Endpoints
 | Method | Endpoint | Who | Purpose |

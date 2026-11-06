@@ -94,7 +94,8 @@ public class ClaimService {
     @Transactional
     public ClaimResponse assign(Long claimId, AssignClaimRequest req) {
         Claim claim = requireClaim(claimId);
-        ClaimsStaff officer = requireStaff(req.staffId());
+        ClaimsStaff officer = staff.findByIdForUpdate(req.staffId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Claims staff not found"));
         if (!officer.isActive()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Staff member is inactive");
         if (!claim.getStatus().isAssignable())
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Closed claims cannot be reassigned");
@@ -153,7 +154,7 @@ public class ClaimService {
     @Transactional
     public ClaimResponse provideInformation(Long id, ProvideInformationRequest req) {
         Claim claim = requireClaim(id);
-        String email = req.claimantEmail().trim().toLowerCase();
+        String email = req.claimantEmail().trim().toLowerCase(Locale.ROOT);
         if (!claim.getClaimant().getEmail().equalsIgnoreCase(email))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Email does not match the claimant on this claim");
         ClaimStatus before = claim.getStatus();

@@ -43,6 +43,8 @@ class ClaimServiceTest {
         when(claims.saveAndFlush(any(Claim.class))).thenAnswer(i -> i.getArgument(0));
         when(staff.findById(1L)).thenReturn(Optional.of(asha));
         when(staff.findById(2L)).thenReturn(Optional.of(rahul));
+        when(staff.findByIdForUpdate(1L)).thenReturn(Optional.of(asha));
+        when(staff.findByIdForUpdate(2L)).thenReturn(Optional.of(rahul));
     }
 
     private static ClaimsStaff officer(Long id, String name, boolean active) {
@@ -105,7 +107,7 @@ class ClaimServiceTest {
     @Test
     void assignRejectsInactiveAndMissingStaff() {
         ClaimsStaff gone = officer(3L, "Gone", false);
-        when(staff.findById(3L)).thenReturn(Optional.of(gone));
+        when(staff.findByIdForUpdate(3L)).thenReturn(Optional.of(gone));
         assertEquals(400, statusOf(() -> service.assign(10L, new AssignClaimRequest(3L))));
         assertEquals(404, statusOf(() -> service.assign(10L, new AssignClaimRequest(99L))));
         assertEquals(404, statusOf(() -> service.assign(999L, new AssignClaimRequest(1L))));
